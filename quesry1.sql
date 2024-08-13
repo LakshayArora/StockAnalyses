@@ -57,3 +57,7 @@ CSV HEADER;
 SELECT *
 from sp500_companies
 Limit 5
+
+select *
+from sp500_stocks
+Limit 5;
