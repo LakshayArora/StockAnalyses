@@ -7,6 +7,10 @@ Sales by Fulfillment Channel: What is the revenue distribution between different
 Return Rate: How many orders were canceled, and what percentage does this represent of total orders?
 */
 
+COPY amazon_sales
+FROM 'D:\SQLsales\amazon_sales.csv'
+DELIMITER ',' CSV HEADER;
 Select *
 From amazon_sales
 Limit 5
+
