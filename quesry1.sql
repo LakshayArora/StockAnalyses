@@ -1,51 +1,55 @@
-CREATE TABLE amazon_sales (
-    index SERIAL PRIMARY KEY,
-    order_id VARCHAR(255),
+CREATE TABLE sp500_stocks (
     date DATE,
-    status VARCHAR(50),
-    fulfilment VARCHAR(50),
-    sales_channel VARCHAR(50),
-    ship_service_level VARCHAR(50),
-    style VARCHAR(100),
-    sku VARCHAR(50),
-    category VARCHAR(50),
-    size VARCHAR(50),
-    asin VARCHAR(50),
-    courier_status VARCHAR(100),
-    qty INTEGER,
-    currency VARCHAR(10),
-    amount NUMERIC(10, 2),
-    ship_city VARCHAR(100),
-    ship_state VARCHAR(50),
-    ship_postal_code VARCHAR(20),
-    ship_country VARCHAR(50),
-    promotion_ids TEXT,
-    b2b BOOLEAN,
-    fulfilled_by VARCHAR(50),
-    unnamed_22 TEXT
+    symbol VARCHAR(10),
+    adj_close DECIMAL(15, 6),
+    close DECIMAL(15, 6),
+    high DECIMAL(15, 6),
+    low DECIMAL(15, 6),
+    open DECIMAL(15, 6),
+    volume BIGINT
 );
-copy amazon_sales 
-FROM 'D:\SQLsales\amazon_sales.csv' 
-DELIMITER ',' CSV HEADER;
+
+copy sp500_stocks
+From 'D:\SQLsales\sp500_stocks.csv'
+DELIMITER ','
+CSV HEADER;
 
 SELECT *
-FROM amazon_sales
-Limit 5
+fROM sp500_stocks
+lIMIT 5;
 
-CREATE TABLE int_sales (
-    id INT PRIMARY KEY,
+CREATE TABLE sp500_index (
     date DATE,
-    months int,
-    customer VARCHAR(255),
-    style VARCHAR(50),
-    sku VARCHAR(50),
-    size VARCHAR(10),
-    pcs DECIMAL(10, 2),
-    rate DECIMAL(10, 2),
-    gross_amt DECIMAL(10, 2)
+    Index DECIMAL(10, 2)
 );
-copy int_sales 
-FROM 'D:\SQLsales\int_sales.csv' 
-DELIMITER ',' CSV HEADER;
 
-drop table amazon_sales;public
+
+copy sp500_index
+From 'D:\SQLsales\sp500_index.csv'
+DELIMITER ','
+CSV HEADER;
+
+CREATE TABLE sp500_companies (
+    exchange VARCHAR(10),
+    symbol VARCHAR(10),
+    shortname VARCHAR(255),
+    longname VARCHAR(255),
+    sector VARCHAR(100),
+    industry VARCHAR(255),
+    currentprice DECIMAL(10, 2),
+    marketcap VARCHAR(50),
+    ebitda VARCHAR(50),
+    revenuegrowth DECIMAL(5, 3),
+    city VARCHAR(100),
+    state VARCHAR(10),
+    country VARCHAR(100),
+    fulltimeemployees INT,
+    longbusinesssummary TEXT,
+    weight DECIMAL(7, 6)
+);
+
+
+copy sp500_companies
+From 'D:\SQLsales\sp500_companies.csv'
+DELIMITER ','
+CSV HEADER;
