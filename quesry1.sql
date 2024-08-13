@@ -53,3 +53,7 @@ copy sp500_companies
 From 'D:\SQLsales\sp500_companies.csv'
 DELIMITER ','
 CSV HEADER;
+
+SELECT *
+from sp500_companies
+Limit 5
