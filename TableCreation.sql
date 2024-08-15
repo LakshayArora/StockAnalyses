@@ -1,3 +1,5 @@
+/* Creating necessary tables for all the 3 dataset*/
+
 CREATE TABLE sp500_stocks (
     date DATE,
     symbol VARCHAR(10),
@@ -37,8 +39,8 @@ CREATE TABLE sp500_companies (
     sector VARCHAR(100),
     industry VARCHAR(255),
     currentprice DECIMAL(10, 2),
-    marketcap VARCHAR(50),
-    ebitda VARCHAR(50),
+    marketcap DECIMAL(20, 2),
+    ebitda DECIMAL(20,2),
     revenuegrowth DECIMAL(5, 3),
     city VARCHAR(100),
     state VARCHAR(10),
@@ -47,8 +49,6 @@ CREATE TABLE sp500_companies (
     longbusinesssummary TEXT,
     weight DECIMAL(7, 6)
 );
-
-
 copy sp500_companies
 From 'D:\SQLsales\sp500_companies.csv'
 DELIMITER ','
@@ -61,3 +61,5 @@ Limit 5
 select *
 from sp500_stocks
 Limit 5;
+
+

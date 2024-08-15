@@ -1,16 +1,207 @@
+
 /*
-. Amazon Sales Report
-Total Sales: What is the total sales amount for orders marked as "Shipped"?
-Top Selling Products: Which products (SKU) generated the most revenue?
-Category Performance: How does the revenue split across different product categories?
-Sales by Fulfillment Channel: What is the revenue distribution between different fulfillment channels (e.g., Amazon, Merchant)?
-Return Rate: How many orders were canceled, and what percentage does this represent of total orders?
+Q1 Retrieve the closing price of a specific
+ stock (e.g., Apple Inc.) for a specific month/year.
 */
 
-COPY amazon_sales
-FROM 'D:\SQLsales\amazon_sales.csv'
-DELIMITER ',' CSV HEADER;
-Select *
-From amazon_sales
-Limit 5
+SELECT 
+    close,
+    symbol,
+    date
+FROM
+    sp500_stocks
+WHERE 
+    symbol = 'AAPL' 
+    AND
+    EXTRACT(YEAR FROM date) = 2024
+    AND
+    EXTRACT(MONTH FROM date) = 6;
 
+
+/* If the symbol for the company is not known 
+
+Here we have joined two tables wherein sp500_companies contains the comapony name and
+sp500_stocks contain the stock close
+*/
+
+SELECT
+    close,
+    s.symbol,
+    date,
+    shortname
+FROM
+    sp500_stocks as s
+INNER JOIN
+    sp500_companies as c
+ON
+    s.symbol=c.symbol
+WHERE
+    shortname LIKE '%Apple%'
+    AND
+    date = '2024-06-03';
+--    EXTRACT(YEAR FROM date) = 2024
+ --   AND
+ --   EXTRACT(MONTH FROM date) = 6; 
+
+
+/*
+List all companies in the S&P 500 that belong to a specific sector
+ (e.g., Technology)
+*/
+
+--Getting unique values from sector column
+
+SELECT DISTINCT sector
+FROM sp500_companies;
+
+--Listing companies where sector = "Utilities and ordering by marketcap DESC "
+
+SELECT
+     shortname,
+     symbol,
+     sector,
+     marketcap,
+     country
+FROM
+     sp500_companies
+--WHERE
+--     sector = 'Utilities'
+ORDER BY 
+    marketcap DESC
+LIMIT 20;
+
+/*
+Calculate the average closing price of each stock over a specific month and year
+*/
+
+SELECT 
+    symbol,
+    EXTRACT(YEAR FROM date) AS year_,
+    EXTRACT(MONTH FROM date) AS month_,
+    AVG(close) 
+FROM
+    sp500_stocks
+WHERE
+    EXTRACT(YEAR FROM date) = 2023
+    AND EXTRACT(MONTH FROM date) = 2
+GROUP BY
+    symbol,
+    EXTRACT(YEAR FROM date),
+    EXTRACT(MONTH FROM date)
+HAVING
+     AVG(close) IS NOT NULL; --To clear if any null values due to delisting or other reasons
+
+/*
+Find the total trading volume of each stock for the specific year and month.
+*/
+
+SELECT
+    symbol,
+    COALESCE(SUM(volume)) as total_volume
+FROM
+    sp500_stocks
+WHERE
+    EXTRACT(YEAR FROM date) = 2024
+    AND EXTRACT(MONTH FROM date) = 3
+    AND volume IS NOT NULL -- to remove NULL trading volumes
+GROUP BY 
+    symbol
+ORDER BY
+    total_volume DESC;
+
+
+/*
+Determine the stock with the highest average closing price over the last six months.
+*/
+
+SELECT 
+    symbol,
+    AVG(close) AS avg_close
+FROM
+    sp500_stocks
+WHERE
+    date >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '6 months'
+GROUP BY
+    symbol
+ORDER BY
+    AVG(close)DESC;
+
+/*
+Combine stock prices with company information to list the sector and industry of each stock.
+*/
+
+SELECT
+    C.symbol,
+    shortname,
+    sector,
+    industry,
+    country,
+    AVG(S.close) as avg_close,
+    EXTRACT(YEAR FROM S.date) as year_
+FROM
+    sp500_companies as C
+INNER JOIN
+    sp500_stocks as S
+on
+    C.symbol=S.symbol
+WHERE
+    EXTRACT(YEAR FROM S.date) = 2024
+GROUP BY
+    C.symbol,
+    shortname,
+    sector,
+    industry,
+    country,
+    year_
+HAVING
+    AVG(S.close) is not NULL
+ORDER BY
+    avg_close DESC
+;
+
+
+/*
+Identify the top 10 companies by 
+market capitalization and retrieve their most recent closing stock price.
+*/
+
+WITH TopCompanies AS (
+    SELECT 
+        symbol,
+        shortname,
+        sector,
+        industry,
+        country,
+        marketcap
+    FROM 
+        sp500_companies
+    ORDER BY 
+        marketcap DESC
+),
+RecentPrices AS (
+    SELECT 
+        symbol,
+        close,
+        ROW_NUMBER() OVER (PARTITION BY symbol ORDER BY date DESC) AS rn
+    FROM 
+        sp500_stocks
+)
+SELECT
+    C.symbol,
+    C.shortname,
+    C.sector,
+    C.industry,
+    C.country,
+    C.marketcap,
+    R.close
+FROM
+    TopCompanies AS C
+LEFT JOIN
+    RecentPrices AS R
+ON
+    C.symbol = R.symbol
+WHERE
+    R.rn = 1
+ORDER BY
+    C.marketcap DESC
+LIMIT 10;
