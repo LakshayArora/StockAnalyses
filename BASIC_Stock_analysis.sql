@@ -1,5 +1,5 @@
 /*
-Q1: Retrieve the closing price of a specific stock (e.g., Apple Inc.) for a specific month/year.
+Retrieve the closing price of a specific stock (e.g., Apple Inc.) for a specific month/year.
 */
 
 SELECT 
@@ -36,8 +36,8 @@ WHERE
 List all companies in the S&P 500 that belong to a specific sector (e.g., Technology).
 */
 
-SELECT DISTINCT sector  -- Retrieve unique sector values
-FROM sp500_companies;
+--SELECT DISTINCT sector   to Retrieve unique sector values
+--FROM sp500_companies;
 
 SELECT
      shortname,
@@ -47,6 +47,8 @@ SELECT
      country
 FROM
      sp500_companies
+WHERE 
+    sector = 'Technology'
 ORDER BY 
     marketcap DESC  -- Order the results by market capitalization in descending order
 LIMIT 20;  -- Limit the results to the top 20 companies
@@ -148,3 +150,27 @@ GROUP BY
     symbol  -- Group by each stock symbol to calculate correlation per company
 ORDER BY
     price_volume_correlation DESC;  
+
+/*
+Find the stock that had the highest single-day percentage increase in price in the last year.
+*/
+
+SELECT
+    symbol,
+    date,
+    ROUND(((close - previous_close) / previous_close) * 100, 2) AS highest_perc_inc
+FROM (
+    SELECT
+        symbol,
+        date,
+        close,
+        LAG(close) OVER (PARTITION BY symbol ORDER BY date) AS previous_close
+    FROM
+        sp500_stocks
+    WHERE
+        EXTRACT(YEAR FROM date) = 2023  -- Replace 2023 with the desired year
+) AS subquery
+WHERE
+    previous_close IS NOT NULL  -- Exclude rows where the previous day's close is NULL
+ORDER BY
+    highest_perc_inc DESC

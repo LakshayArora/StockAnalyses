@@ -237,24 +237,21 @@ SELECT
     s.date,
     s.close
 FROM
-    sp500_stocks as s
+    sp500_stocks AS s
 WHERE
-    s.date='2023-08-17'
-    AND
-    s.close >(
+    s.date = '2023-08-17'  -- Filter for the specific date
+    AND s.close > (
         SELECT
             close
         FROM
             sp500_stocks
-        WHERE   
-            date = '2023-08-17'
-            AND 
-            symbol = 'AAPL'
-)
-    AND
-    s.symbol <> 'AAPL'
+        WHERE
+            date = '2023-08-17'  -- Compare with the closing price on the same date
+            AND symbol = 'AAPL'  -- Get the closing price of AAPL
+    )
+    AND s.symbol <> 'AAPL'  -- Exclude AAPL from the results
 ORDER BY
-    s.close DESC;
+    s.close DESC;  -- Order by closing price in descending order
 
 /*
 Find the stocks with a closing price above the average closing price
@@ -266,20 +263,19 @@ SELECT
     s.date,
     s.close
 FROM
-    sp500_stocks as s
+    sp500_stocks AS s
 WHERE
-    s.date='2023-08-17'
-    AND
-    s.close >(
+    s.date = '2023-08-17'  -- Filter for the specific date
+    AND s.close > (
         SELECT
             AVG(close)
         FROM
             sp500_stocks
-        WHERE   
-            date = '2023-08-17'
-)
+        WHERE
+            date = '2023-08-17'  -- Calculate the average close price for the same date
+    )
 ORDER BY
-    s.close DESC;
+    s.close DESC;  -- Order by closing price in descending order
 
 /*
 Rank the sector based on the most companies in the top 10% by market capitalization.
@@ -305,3 +301,31 @@ GROUP BY
     sector
 ORDER BY
     num_companies DESC  -- Order by the number of companies in descending order 
+
+/*
+Calculate the cumulative return of each stock over a specified year.
+*/
+
+WITH StockYearlyPrices AS (
+    SELECT
+        symbol,
+        FIRST_VALUE(close) OVER (PARTITION BY symbol ORDER BY date ASC) AS first_close,  -- First closing price of the year
+        LAST_VALUE(close) OVER (PARTITION BY symbol ORDER BY date ASC RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS last_close  -- Last closing price of the year
+    FROM
+        sp500_stocks
+    WHERE
+        EXTRACT(YEAR FROM date) = 2023  -- Specify the year 
+)
+SELECT
+    symbol,
+    ROUND(((last_close - first_close) / first_close) * 100, 2) AS cumulative_return  -- Calculate the cumulative return as a percentage
+FROM
+    StockYearlyPrices
+WHERE
+    (last_close - first_close) is NOT NULL
+GROUP BY
+    symbol,
+    first_close,
+    last_close
+ORDER BY
+    cumulative_return DESC;  -- Order by cumulative return in descending order
