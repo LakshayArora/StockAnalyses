@@ -1,16 +1,6 @@
 
 
-Joining Tables
 
-
-
-Advanced Queries
-
-9)Calculate the percentage change in the closing price of a stock over a specified period.
-
-10)Identify stocks that have consistently increased in price for five consecutive trading days.
-
-11)List the top 10 stocks by year-to-date percentage gain and their corresponding sectors.
 
 Window Functions
 
