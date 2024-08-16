@@ -1,7 +1,5 @@
-
 /*
-Q1 Retrieve the closing price of a specific
- stock (e.g., Apple Inc.) for a specific month/year.
+Q1: Retrieve the closing price of a specific stock (e.g., Apple Inc.) for a specific month/year.
 */
 
 SELECT 
@@ -11,17 +9,14 @@ SELECT
 FROM
     sp500_stocks
 WHERE 
-    symbol = 'AAPL' 
-    AND
-    EXTRACT(YEAR FROM date) = 2024
-    AND
-    EXTRACT(MONTH FROM date) = 6;
+    symbol = 'AAPL'  -- Filter for Apple Inc. using its stock symbol
+    AND EXTRACT(YEAR FROM date) = 2024  -- Filter for the year 2024
+    AND EXTRACT(MONTH FROM date) = 6;  -- Filter for the month of June
 
-
-/* If the symbol for the company is not known 
-
-Here we have joined two tables wherein sp500_companies contains the comapony name and
-sp500_stocks contain the stock close
+/* 
+If the symbol for the company is not known 
+Here we join two tables: sp500_companies contains the company name, 
+and sp500_stocks contains the stock close.
 */
 
 SELECT
@@ -30,31 +25,19 @@ SELECT
     date,
     shortname
 FROM
-    sp500_stocks as s
+    sp500_stocks AS s
 INNER JOIN
-    sp500_companies as c
-ON
-    s.symbol=c.symbol
+    sp500_companies AS c ON s.symbol = c.symbol  -- Join sp500_stocks with sp500_companies on the stock symbol
 WHERE
-    shortname LIKE '%Apple%'
-    AND
-    date = '2024-06-03';
---    EXTRACT(YEAR FROM date) = 2024
- --   AND
- --   EXTRACT(MONTH FROM date) = 6; 
-
+    shortname LIKE '%Apple%'  -- Filter for companies with "Apple" in their name
+    AND date = '2024-06-03';  -- Filter for a specific date
 
 /*
-List all companies in the S&P 500 that belong to a specific sector
- (e.g., Technology)
+List all companies in the S&P 500 that belong to a specific sector (e.g., Technology).
 */
 
---Getting unique values from sector column
-
-SELECT DISTINCT sector
+SELECT DISTINCT sector  -- Retrieve unique sector values
 FROM sp500_companies;
-
---Listing companies where sector = "Utilities and ordering by marketcap DESC "
 
 SELECT
      shortname,
@@ -64,51 +47,47 @@ SELECT
      country
 FROM
      sp500_companies
---WHERE
---     sector = 'Utilities'
 ORDER BY 
-    marketcap DESC
-LIMIT 20;
+    marketcap DESC  -- Order the results by market capitalization in descending order
+LIMIT 20;  -- Limit the results to the top 20 companies
 
 /*
-Calculate the average closing price of each stock over a specific month and year
+Calculate the average closing price of each stock over a specific month and year.
 */
 
 SELECT 
     symbol,
     EXTRACT(YEAR FROM date) AS year_,
     EXTRACT(MONTH FROM date) AS month_,
-    AVG(close) 
+    AVG(close)  -- Calculate the average closing price
 FROM
     sp500_stocks
 WHERE
-    EXTRACT(YEAR FROM date) = 2023
-    AND EXTRACT(MONTH FROM date) = 2
+    EXTRACT(YEAR FROM date) = 2023  -- Filter for the year 2023
+    AND EXTRACT(MONTH FROM date) = 2  -- Filter for the month of February
 GROUP BY
     symbol,
     EXTRACT(YEAR FROM date),
     EXTRACT(MONTH FROM date)
 HAVING
-     AVG(close) IS NOT NULL; --To clear if any null values due to delisting or other reasons
+     AVG(close) IS NOT NULL; -- Ensure the average closing price is not NULL
 
 /*
-Find the total trading volume of each stock for the specific year and month.
+Find the total trading volume of each stock for a specific year and month.
 */
 
 SELECT
     symbol,
-    COALESCE(SUM(volume)) as total_volume
+    COALESCE(SUM(volume), 0) AS total_volume  -- Sum the trading volumes, replacing NULL with 0
 FROM
     sp500_stocks
 WHERE
-    EXTRACT(YEAR FROM date) = 2024
-    AND EXTRACT(MONTH FROM date) = 3
-    AND volume IS NOT NULL -- to remove NULL trading volumes
+    EXTRACT(YEAR FROM date) = 2024  -- Filter for the year 2024
+    AND EXTRACT(MONTH FROM date) = 3  -- Filter for the month of March
 GROUP BY 
     symbol
 ORDER BY
-    total_volume DESC;
-
+    total_volume DESC;  -- Order the results by total trading volume in descending order
 
 /*
 Determine the stock with the highest average closing price over the last six months.
@@ -116,15 +95,15 @@ Determine the stock with the highest average closing price over the last six mon
 
 SELECT 
     symbol,
-    AVG(close) AS avg_close
+    AVG(close) AS avg_close  -- Calculate the average closing price
 FROM
     sp500_stocks
 WHERE
-    date >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '6 months'
+    date >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '6 months'  -- Filter for the last six months
 GROUP BY
     symbol
 ORDER BY
-    AVG(close)DESC;
+    AVG(close) DESC;  -- Order the results by average closing price in descending order
 
 /*
 Combine stock prices with company information to list the sector and industry of each stock.
@@ -136,16 +115,14 @@ SELECT
     sector,
     industry,
     country,
-    AVG(S.close) as avg_close,
-    EXTRACT(YEAR FROM S.date) as year_
+    AVG(S.close) AS avg_close,  -- Calculate the average closing price
+    EXTRACT(YEAR FROM S.date) AS year_
 FROM
-    sp500_companies as C
+    sp500_companies AS C
 INNER JOIN
-    sp500_stocks as S
-on
-    C.symbol=S.symbol
+    sp500_stocks AS S ON C.symbol = S.symbol  -- Join company and stock data on the stock symbol
 WHERE
-    EXTRACT(YEAR FROM S.date) = 2024
+    EXTRACT(YEAR FROM S.date) = 2024  -- Filter for the year 2024
 GROUP BY
     C.symbol,
     shortname,
@@ -154,9 +131,6 @@ GROUP BY
     country,
     year_
 HAVING
-    AVG(S.close) is not NULL
+    AVG(S.close) IS NOT NULL  -- Ensure the average closing price is not NULL
 ORDER BY
-    avg_close DESC
-;
-
-
+    avg_close DESC;  -- Order the results by average closing price in descending order
