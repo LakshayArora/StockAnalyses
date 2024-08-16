@@ -2,23 +2,9 @@
 
 
 
-Window Functions
 
-12)Calculate the moving average of the closing price for each stock over the last 10 days.
 
-13)Rank stocks within each sector by their year-to-date performance.
 
-Subqueries and Nested Queries
-
-14)Find the stocks with a closing price above the average closing price of all stocks on the same date.
-
-15)Retrieve the list of stocks that have a higher closing price than a specified stock (e.g., Microsoft) on the same day.
-
-Complex Joins and Data Analysis
-
-16)Identify the correlation between the trading volume and the stock price for each company.
-
-17)Determine the sector that has the most companies in the top 10% by market capitalization.
 
 Time-Based Analysis
 
@@ -26,4 +12,3 @@ Time-Based Analysis
 
 19)Find the stock that had the highest single-day percentage increase in price in the last year.
 
-20)Analyze the performance of stocks by sector during a specific economic event (e.g., COVID-19 pandemic).

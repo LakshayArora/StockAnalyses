@@ -191,3 +191,117 @@ FROM
     MovingAverages
 WHERE
     rn = 1;  -- Select the most recent moving average for each symbol
+
+
+/*
+Rank stocks within each sector by their year-to-date performance.
+*/
+
+WITH YTD_Performance AS (
+    SELECT
+        s.symbol,
+        c.sector,
+        s.date,
+        FIRST_VALUE(s.close) OVER (PARTITION BY s.symbol ORDER BY s.date ASC) AS start_close,  -- Get the first closing price of the year
+        LAST_VALUE(s.close) OVER (PARTITION BY s.symbol ORDER BY s.date ASC RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS end_close  -- Get the last closing price up to the current date
+    FROM
+        sp500_stocks AS s
+    INNER JOIN
+        sp500_companies AS c ON s.symbol = c.symbol
+    WHERE
+        s.date BETWEEN '2024-01-01' AND '2024-08-01'  -- Adjust for the date as YTD is a bit tricky due to lack of data after when dataset was downloaded
+)
+SELECT
+    symbol,
+    sector,
+    ROUND(((end_close - start_close) / start_close) * 100, 2) AS ytd_percent_change,  -- Calculate YTD percentage change
+    RANK() OVER (PARTITION BY sector ORDER BY ((end_close - start_close) / start_close) DESC) AS sector_rank  -- Rank within each sector by YTD performance
+FROM
+    YTD_Performance
+GROUP BY
+    symbol,
+    sector,
+    start_close,
+    end_close
+ORDER BY
+    sector,
+    sector_rank;
+
+/*
+
+Retrieve the list of stocks that have a higher closing price than a specified stock on the same day.
+*/
+
+SELECT
+    s.symbol,
+    s.date,
+    s.close
+FROM
+    sp500_stocks as s
+WHERE
+    s.date='2023-08-17'
+    AND
+    s.close >(
+        SELECT
+            close
+        FROM
+            sp500_stocks
+        WHERE   
+            date = '2023-08-17'
+            AND 
+            symbol = 'AAPL'
+)
+    AND
+    s.symbol <> 'AAPL'
+ORDER BY
+    s.close DESC;
+
+/*
+Find the stocks with a closing price above the average closing price
+ of all stocks on the same date.
+*/
+
+SELECT
+    s.symbol,
+    s.date,
+    s.close
+FROM
+    sp500_stocks as s
+WHERE
+    s.date='2023-08-17'
+    AND
+    s.close >(
+        SELECT
+            AVG(close)
+        FROM
+            sp500_stocks
+        WHERE   
+            date = '2023-08-17'
+)
+ORDER BY
+    s.close DESC;
+
+/*
+Rank the sector based on the most companies in the top 10% by market capitalization.
+*/
+
+WITH MarketCapRanking AS (
+    SELECT
+        symbol,
+        sector,
+        marketcap,
+        NTILE(10) OVER (ORDER BY marketcap DESC) AS marketcap_decile  -- Rank companies into deciles by market cap
+    FROM
+        sp500_companies
+)
+SELECT
+    sector,
+    COUNT(*) AS num_companies
+FROM
+    MarketCapRanking
+WHERE
+    marketcap_decile = 1
+GROUP BY
+    sector
+ORDER BY
+    num_companies DESC  -- Order by the number of companies in descending order 

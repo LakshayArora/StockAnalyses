@@ -134,3 +134,17 @@ HAVING
     AVG(S.close) IS NOT NULL  -- Ensure the average closing price is not NULL
 ORDER BY
     avg_close DESC;  -- Order the results by average closing price in descending order
+
+/*
+Identify the correlation between the trading volume and the stock price for each company.
+*/
+
+SELECT
+    symbol,
+    CORR(close, volume) AS price_volume_correlation  -- Calculate the Pearson correlation between closing price and volume
+FROM
+    sp500_stocks
+GROUP BY
+    symbol  -- Group by each stock symbol to calculate correlation per company
+ORDER BY
+    price_volume_correlation DESC;  
